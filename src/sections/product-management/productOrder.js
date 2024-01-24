@@ -26,15 +26,19 @@ import utc from 'dayjs/plugin/utc';  // Import the UTC plugin
 // ----------------------------------------------------------------------
 
 // ----------------------------------------------------------------------
-const initialOfferData = {
-  code: '',
-  description: '',
-  type: '',
-  status: ''
+const initialProductData = {
+  id: '',
+  name: '',
+  category: '',
+  purchasePrice: '',
+  sellingPrice: '',
+  gstValue: '',
+  quantity: '',
+  barcode: ''
 };
 
 
-const initialOfferErr = {
+const initialProductErr = {
   type: false,
   status: false
 };
@@ -69,11 +73,11 @@ export default function ProductPage() {
   // For Modal Open
   const [open, setOpen] = useState(false);
 
-  const [offersLoading, setOffersLoading] = useState(false);
-  const [offers, setOffers] = useState([]);
-  const [offer, setOffer] = useState(initialOfferData);
-  const [offerErr, setOfferErr] = useState(initialOfferErr);
-  const [editUser, setEditUser] = useState(false);
+  const [isProductsLoading, setIsProductsLoading] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [product, setProduct] = useState(initialProductData);
+  const [productErr, setProductErr] = useState(initialProductErr);
+  const [editProduct, setEditProduct] = useState(false);
 
   // Temporary State
   const [tempData, setTempData] = useState({});
@@ -90,10 +94,12 @@ export default function ProductPage() {
   const [openDialog, setOpenDialog] = useState(false);
 
   const handleOpen = () => {
-    const offerCode = generateOfferCode();
-    setOffer((prev) => ({ ...prev, code: offerCode }));
+    if (!barcodeValues._id) {
+      enqueueSnackbar('Please configure barcode values for adding product!', { variant: 'error' });
+      return;
+    }
     setOpen(true);
-    setEditUser(false);
+    setEditProduct(false);
   };
 
   const handleClose = () => setOpen(false);
@@ -104,25 +110,50 @@ export default function ProductPage() {
     try {
       const decryptedToken = localStorage.getItem(constants.keyUserToken);
       const accessToken = decryptToken(decryptedToken);
-      const response = await axios.post(endpoints.offer.list, {}, {
+      const response = await axios.post(endpoints.product.list, {}, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         }
       });
       if (response) {
-        setOffersLoading(false);
-        setOffers(response.data.data);
+        setIsProductsLoading(false);
+        setProducts(response.data.data);
       }
     } catch (err) {
-      enqueueSnackbar('Failed to fetch offers!', { variant: 'error' });
-      setOffersLoading(false);
+      enqueueSnackbar('Failed to fetch products!', { variant: 'error' });
+      setIsProductsLoading(false);
+    }
+  };
+
+  const [barcodeValues, setBarcodeValues] = useState({
+    _id: '',
+    percentageValue: '',
+    value: ''
+  });
+
+  const fetchBarcodeValues = async () => {
+
+    try {
+      const decryptedToken = localStorage.getItem(constants.keyUserToken);
+      const accessToken = decryptToken(decryptedToken);
+      const response = await axios.post(endpoints.productBarcodeValues.details, {}, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        }
+      });
+      if (response.data.data && Object.keys(response.data.data).length > 0) {
+        setBarcodeValues(response.data.data);
+      };
+    } catch (err) {
+      console.log(err);
+      enqueueSnackbar('Failed to fetch Barcode Values!', { variant: 'error' });
     }
   };
 
   useEffect(() => {
 
     // Products
-    setOffersLoading(true);
+    setIsProductsLoading(true);
     fetchData();
 
 
@@ -130,60 +161,41 @@ export default function ProductPage() {
     setIsCategoryLoading(true);
     fetchCategoryData();
 
+    // Barcode Values
+    fetchBarcodeValues();
+
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // You can use setFormData to update the state when user input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setOffer((prevFormData) => ({
+    setProduct((prevFormData) => ({
       ...prevFormData,
       [name]: value,
     }));
 
-    if (name === 'type' || name === 'status') {
-      // Clear the error for the field when the user starts typing again
-      setOfferErr((prevErrors) => ({
-        ...prevErrors,
-        [name]: false,
-      }));
-    }
   };
 
 
   const handleSave = async () => {
 
-    if (!offer.type) {
-      setOfferErr((prevErrs) => ({ ...prevErrs, type: true }))
-      return;
-    }
-    setOfferErr((prevErrs) => ({ ...prevErrs, type: false }))
-
-    if (!offer.status) {
-      setOfferErr((prevErrs) => ({ ...prevErrs, status: true }))
-      return;
-    }
-    setOfferErr((prevErrs) => ({ ...prevErrs, status: false }))
-
     // If no errors, proceed with saving
     const decryptedToken = localStorage.getItem(constants.keyUserToken);
     const accessToken = decryptToken(decryptedToken);
-    axios.post(endpoints.offer.add, offer,
+    axios.post(endpoints.product.add, product,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         }
       })
       .then((res) => {
-        enqueueSnackbar('Offer created successfully!', { variant: 'success' });
+        enqueueSnackbar('Product created successfully!', { variant: 'success' });
         // fetchData();
         handleClose();
-        // Reset the error state
-        setOfferErr(initialOfferErr);
-
-        // Reset the offer  state
-        setOffer(initialOfferData);
-
+        // Reset the product  state
+        setProduct(initialProductData);
         fetchData();
       }).catch((err) => {
         enqueueSnackbar(err.error || err.msg, { variant: 'error' });
@@ -191,23 +203,25 @@ export default function ProductPage() {
   };
 
   const handleEditDetails = () => {
-    setEditUser(true);
+    setEditProduct(true);
     setAnchorEl(null);
-    const editedOfferData = {
+    console.log(tempData)
+    const data = {
       id: tempData._id,
-      code: tempData.code,
-      status: tempData.status,
-      type: tempData.type,
-      description: tempData.description
+      name: tempData.name,
+      category: tempData.category._id,
+      purchasePrice: tempData.purchasePrice,
+      sellingPrice: tempData.sellingPrice,
+      gstValue: tempData.gstValue,
+      quantity: tempData.quantity,
+      barcode: tempData.barcode
     };
-
-    setOffer(editedOfferData);
+    setProduct(data);
     setOpen(true);
-
   };
 
   const handleDeleteDetails = () => {
-    setOffer((prev) => ({ ...prev, id: tempData._id }));
+    setProduct((prev) => ({ ...prev, id: tempData._id }));
     setOpenDialog(true);
     setAnchorEl(null);
   };
@@ -222,84 +236,75 @@ export default function ProductPage() {
       }
     };
 
-    axios.post(endpoints.offer.delete, { id: offer.id }, config)
+    axios.post(endpoints.product.delete, { id: product.id }, config)
       .then((res) => {
-        if (res) {
-          enqueueSnackbar('Offer deleted successfully!', { variant: 'success' });
-          setOpenDialog(false);
-          setOffer(initialOfferData);
-          setOfferErr(initialOfferErr);
-          fetchData();
-        };
+        enqueueSnackbar('Product deleted successfully!', { variant: 'success' });
+        setOpenDialog(false);
+        setProduct(initialProductData);
+        fetchData();
       }).catch((err) => {
         enqueueSnackbar(err.msg || err.error, { variant: 'error' });
       })
   };
 
   const handleUpdate = async () => {
-    if (!offer.type) {
-      setOfferErr((prevErrs) => ({ ...prevErrs, type: true }))
-      return;
-    }
-    setOfferErr((prevErrs) => ({ ...prevErrs, type: false }))
-
-    if (!offer.status) {
-      setOfferErr((prevErrs) => ({ ...prevErrs, status: true }))
-      return;
-    }
-    setOfferErr((prevErrs) => ({ ...prevErrs, status: false }))
-
     // If no errors, proceed with saving
     const decryptedToken = localStorage.getItem(constants.keyUserToken);
     const accessToken = decryptToken(decryptedToken);
-    axios.post(endpoints.offer.update, offer,
+    axios.post(endpoints.product.update, product,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         }
       })
       .then((res) => {
-        enqueueSnackbar('Offer updated successfully!', { variant: 'success' });
+        enqueueSnackbar('Product updated successfully!', { variant: 'success' });
         handleClose();
-        // Reset the error state
-        setOfferErr(initialOfferErr);
-
-        // Reset the offer  state
-        setOffer(initialOfferData);
-
+        // Reset the product  state
+        setProduct(initialProductData);
         fetchData();
       }).catch((err) => {
         enqueueSnackbar(err.error || err.msg, { variant: 'error' });
       })
-
-
-
   };
 
-  const offerCoumns = [
+  const productColumns = [
     {
-      name: 'Offer Code',
-      selector: row => row.code,
+      name: 'Product Name',
+      selector: row => row.name,
       sortable: true,
+      width: 'auto',
     },
     {
-      name: 'Offer Type',
-      selector: row => row.type,
+      name: 'Product Quantity',
+      selector: row => row.quantity,
       sortable: true,
+      width: 'auto',
+      center: 'true'
     },
     {
-      name: 'Status',
-      selector: row => row.status,
+      name: 'Purchase Price',
+      selector: row => `₹ ${row.purchasePrice.toFixed(2)}`,
       sortable: true,
+      width: 'auto',
+      center: 'true'
     },
     {
-      name: 'Created On',
-      selector: row => formatDate(row.createdAt),
+      name: 'Selling Price',
+      selector: row => `₹ ${row.sellingPrice.toFixed(2)}`,
       sortable: true,
+      width: 'auto',
+      center: 'true'
+    },
+    {
+      name: 'Last Updated',
+      selector: row => formatDate(row.updatedAt),
+      sortable: true,
+      width: 'auto',
     },
     {
       name: 'Actions',
-      width: '20%',
+      width: 'auto',
       // center: true,
       cell: (row) => (
         <>
@@ -327,11 +332,25 @@ export default function ProductPage() {
     },
   ];
 
-  const filteredCustomers = offers.filter((offData) =>
-    offData?.code?.toLowerCase().includes(searchQuery?.toLowerCase())
+  const filteredProducts = products.filter((productData) =>
+    productData?.name?.toLowerCase().includes(searchQuery?.toLowerCase())
   );
 
   const [value, setValue] = useState('one');
+
+
+  // FOR BARCODE GENERATION
+  useEffect(() => {
+    if (product.purchasePrice.length > 0) {
+      const firstPart = Math.floor(Math.random() * 900) + 100;
+      const secondPart = parseInt(product.purchasePrice, 10) * parseInt(barcodeValues.value, 10);
+      const thirdPart = 16;
+      const fourthPart = (parseInt(product.purchasePrice, 10) * parseInt(barcodeValues.percentageValue, 10)) + secondPart;
+      const fifthPart = Math.floor(Math.random() * 900) + 100;
+      const generatedBarcode = `${firstPart}${secondPart.toString().padStart(6, '0')}${thirdPart}${fourthPart.toString().padStart(6, '0')}${fifthPart}`;
+      setProduct((prev) => ({ ...prev, barcode: generatedBarcode }))
+    };
+  }, [product.purchasePrice, barcodeValues.value, barcodeValues.percentageValue]);
 
   // Category Actions *********************************************************************************
   const categoryColumns = [
@@ -416,7 +435,7 @@ export default function ProductPage() {
         enqueueSnackbar('Category created successfully!', { variant: 'success' });
 
         fetchCategoryData();
-        // Reset the offer  state
+        // Reset the product  state
         setCategory({
           _id: '',
           name: '',
@@ -443,7 +462,7 @@ export default function ProductPage() {
         enqueueSnackbar('Category updated successfully!', { variant: 'success' });
 
         fetchCategoryData();
-        // Reset the offer  state
+        // Reset the product  state
         setCategory({
           _id: '',
           name: '',
@@ -553,7 +572,7 @@ export default function ProductPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 InputProps={{
                   startAdornment: (
-                    <InputAdornment position="start">
+                    <InputAdornment >
                       <SearchIcon />
                     </InputAdornment>
                   ),
@@ -582,88 +601,97 @@ export default function ProductPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
 
                 <Typography id="modal-modal-title" variant="h4" component="h2">
-                  Create New Offer
+                  {editProduct ? 'Update Product' : 'Create New Product'}
                 </Typography>
                 <div style={{ padding: "10px", backgroundColor: 'white', borderRadius: '10px' }}>
                   <Grid container spacing={2} >
-                    <Grid item xs={4}>
+                    <Grid item xs={6}>
                       <TextField
-                        label='Offer Code'
-                        name='offercode'
-                        value={offer.code}
-                        disabled
+                        label='Product Name'
+                        name='name'
+                        value={product.name}
+                        onChange={(e) => handleChange(e)}
                         fullWidth
                         required />
                     </Grid>
-                    {/* <Grid item xs={4}>
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <DatePicker
-                                    label="Controlled picker"
-                                    value={dateValue}
-                                    onChange={(newValue) => {
-                                        const utcValue = newValue.utc().startOf('day').format();;
-                                        console.log("🚀 ~ OffersView ~ utcValue:", utcValue)
-                                    }}
-                                />
-                            </LocalizationProvider>
-                        </Grid> */}
 
-                    <Grid item xs={4}>
-                      <FormControl fullWidth>
-                        <InputLabel id="demo-simple-select-label">Offer Percentage Type</InputLabel>
+                    <Grid item xs={6}>
+                      <FormControl fullWidth required>
+                        <InputLabel id="demo-simple-select-label">Category</InputLabel>
                         <Select
                           labelId="demo-simple-select-label"
                           id="demo-simple-select"
-                          value={offer.type}
-                          label="Offer Percentage Type"
-                          name='type'
+                          value={product.category}
+                          label="Category"
+                          name='category'
                           onChange={handleChange}
-                          error={offerErr.type}
                           required
                         >
-                          <MenuItem value='PERCENTAGE'>Percentage Discount</MenuItem>
-                          <MenuItem value='VALUE'>Value Discount</MenuItem>
+                          {
+                            categories.map((cat) => (
+                              <MenuItem value={cat._id}>{cat.name}</MenuItem>
+                            ))
+                          }
                         </Select>
-                        {
-                          offerErr.type &&
+                        {/* {
+                          productErr.type &&
 
                           <FormHelperText sx={{ color: 'red' }}>Please Select Offer Type</FormHelperText>
-                        }
+                        } */}
                       </FormControl>
                     </Grid>
-                    <Grid item xs={4}>
-                      <FormControl fullWidth>
-                        <InputLabel id="demo-simple-select-label">Offer Status</InputLabel>
-                        <Select
-                          labelId="demo-simple-select-label"
-                          id="demo-simple-select"
-                          value={offer.status}
-                          label="Offer Status"
-                          name='status'
-                          onChange={handleChange}
-                          error={offerErr.status}
-                          required
-                        >
-                          <MenuItem value='DRAFT'>Draft</MenuItem>
-                          <MenuItem value='LIVE'>Live</MenuItem>
-                          <MenuItem value='PAST'>Past</MenuItem>
-                        </Select>
-                        {
-                          offerErr.status &&
 
-                          <FormHelperText sx={{ color: 'red' }}>Please Select Offer Status</FormHelperText>
-                        }
-                      </FormControl>
+                    <Grid item xs={6}>
+                      <TextField
+                        label='Purchase Price'
+                        type='number'
+                        name='purchasePrice'
+                        value={product.purchasePrice}
+                        onChange={(e) => handleChange(e)}
+                        fullWidth
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label='Selling Price'
+                        type='number'
+                        name='sellingPrice'
+                        value={product.sellingPrice}
+                        onChange={(e) => handleChange(e)}
+                        fullWidth
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label='GST Value'
+                        type='number'
+                        name='gstValue'
+                        value={product.gstValue}
+                        onChange={(e) => handleChange(e)}
+                        fullWidth
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label='Quantity'
+                        type='number'
+                        name='quantity'
+                        value={product.quantity}
+                        onChange={(e) => handleChange(e)}
+                        fullWidth
+                        required
+                      />
                     </Grid>
                     <Grid item xs={12}>
                       <TextField
-                        label='Description'
-                        multiline
-                        rows={3}
+                        label='Product Barcode'
                         type='text'
-                        name='description'
-                        value={offer.description}
-                        onChange={handleChange}
+                        name='barcode'
+                        value={product.barcode}
+                        disabled
                         fullWidth
                       />
                     </Grid>
@@ -672,13 +700,20 @@ export default function ProductPage() {
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', justifyContent: 'flex-end', padding: "10px" }}>
-                <Button variant='contained' onClick={editUser ? handleUpdate : handleSave}>
-                  {editUser ? 'Update' : 'Save'}
+                <Button variant='contained' onClick={editProduct ? handleUpdate : handleSave} disabled={
+                  !product.name ||
+                  !product.category ||
+                  !product.purchasePrice ||
+                  !product.sellingPrice ||
+                  !product.gstValue ||
+                  !product.quantity
+                }>
+                  {editProduct ? 'Update Product' : 'Save Product'}
                 </Button>
                 <Button variant='outlined' onClick={() => {
-                  if (editUser) {
-                    setOffer(initialOfferData);
-                    setEditUser(false);
+                  if (editProduct) {
+                    setProduct(initialProductData);
+                    setEditProduct(false);
                   };
                   setOpen(false);
                   setTempData({});
@@ -692,19 +727,19 @@ export default function ProductPage() {
 
           <div style={{ marginTop: "20px" }}>
             <DataTable
-              columns={offerCoumns}
-              data={filteredCustomers}
+              columns={productColumns}
+              data={filteredProducts}
               pagination
-              progressPending={offersLoading}
+              progressPending={isProductsLoading}
             />
           </div>
 
 
           {/* Dialog For Delete */}
           <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-            <DialogTitle>Remove Offer</DialogTitle>
+            <DialogTitle>Remove Product</DialogTitle>
             <DialogContent>
-              Are you sure you want to delete this offer?
+              Are you sure you want to delete this product?
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setOpenDialog(false)}>Cancel</Button>

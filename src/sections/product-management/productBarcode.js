@@ -5,13 +5,15 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 // components
 import { useSettingsContext } from 'src/components/settings';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { useEffect, useState } from 'react';
-import { Grid, Tab, Tabs, TextField, Button, InputAdornment, Modal } from '@mui/material';
+import { Grid, Tab, Tabs, TextField, Button, InputAdornment, Modal, MenuItem, Menu } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import DataTable from 'react-data-table-component';
 import { constants } from 'src/utils/constant';
-import { decryptToken } from 'src/utils/common';
+import { decryptToken, formatDate } from 'src/utils/common';
 import axios, { endpoints } from 'src/utils/axios';
+import PrintIcon from '@mui/icons-material/Print';
 import { useSnackbar } from 'src/components/snackbar';
 
 // ----------------------------------------------------------------------
@@ -35,6 +37,7 @@ export default function ProductBarcode() {
     const [searchQuery, setSearchQuery] = useState('');
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isProductsLoading, setIsProductsLoading] = useState(false);
     const [products, setProducts] = useState([]);
     const [barcodeValues, setBarcodeValues] = useState({
         _id: '',
@@ -82,9 +85,40 @@ export default function ProductBarcode() {
 
     };
 
+    const fetchData = async () => {
+
+        try {
+            const decryptedToken = localStorage.getItem(constants.keyUserToken);
+            const accessToken = decryptToken(decryptedToken);
+            const response = await axios.post(endpoints.product.list, {}, {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                }
+            });
+            if (response) {
+                setIsProductsLoading(false);
+                setProducts(response.data.data);
+            }
+        } catch (err) {
+            enqueueSnackbar('Failed to fetch products!', { variant: 'error' });
+            setIsProductsLoading(false);
+        }
+    };
+
+    // For Actions Dropdown
+    const [anchorEl, setAnchorEl] = useState(null);
+    const openMenu = Boolean(anchorEl);
+    // Temporary State
+    const [tempData, setTempData] = useState({});
+
+
     useEffect(() => {
         setIsLoading(true);
         fetchBarcodeValues();
+
+        // // Products
+        setIsProductsLoading(true);
+        fetchData();
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -141,7 +175,41 @@ export default function ProductBarcode() {
             })
     };
 
+    const productBarcodeColumns = [
+        {
+            name: 'Product Name',
+            selector: row => row.name,
+            sortable: true,
+            width: 'auto',
+        },
+        {
+            name: 'Product Barcode',
+            selector: row => row.barcode,
+            sortable: true,
+            width: 'auto',
+            center: 'true'
+        },
+        {
+            name: 'Last Updated',
+            selector: row => formatDate(row.updatedAt),
+            sortable: true,
+            width: 'auto',
+            center: 'true',
+        },
+        {
+            name: 'Actions',
+            width: 'auto',
+            center: 'true',
+            cell: (row) => (
+                <Button onClick={() => { }} color='info' variant='outlined' endIcon={<PrintIcon />}>Print</Button>
+            ),
+        },
+    ];
 
+    const filteredBarcodeProducts =
+        products.filter((productBarcodeData) =>
+            productBarcodeData?.barcode?.toString().includes(searchQuery)
+        );
     return (
         <Container maxWidth={settings.themeStretch ? false : 'xl'}>
             <Typography variant="h4"> Product Barcode </Typography>
@@ -178,7 +246,7 @@ export default function ProductBarcode() {
                                 size="small"
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 type="text"
-                                placeholder="Search"
+                                placeholder="Search Barcode"
                                 InputProps={{
                                     endAdornment: (
                                         <InputAdornment position="end">
@@ -191,8 +259,11 @@ export default function ProductBarcode() {
                         <Grid item xs={12}>
 
                             <DataTable
+                                style={{ borderRadius: "20px" }}
                                 title='Barcodes'
-                                data={[]}
+                                data={filteredBarcodeProducts}
+                                columns={productBarcodeColumns}
+                                progressPending={isProductsLoading}
                                 pagination
                             />
                         </Grid>
@@ -222,6 +293,9 @@ export default function ProductBarcode() {
                                 label="Percentage Value"
                                 name='percentageValue'
                                 value={barcodeValues.percentageValue}
+                                InputProps={{
+                                    endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                                }}
                                 disabled
                             />
                         </Grid>
@@ -257,6 +331,9 @@ export default function ProductBarcode() {
                                 label="Percentage Value"
                                 name='percentageValue'
                                 value={barcodeValues.percentageValue}
+                                InputProps={{
+                                    endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                                }}
                                 onChange={(e) => handleChangeBarcodeValues('percentageValue', e.target.value)}
 
                             />
