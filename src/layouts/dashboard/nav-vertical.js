@@ -47,7 +47,8 @@ export default function NavVertical({ openNav, onCloseNav }) {
         },
       }}
     >
-      <Logo sx={{ mt: 3, ml: 4, mb: 1 }} />
+      {/* <Logo sx={{ mt: 3, ml: 4, mb: 1 }} /> */}
+      <div style={{ marginTop: '30px', marginLeft: '40px', marginBottom: '10px', color: 'white' }} >s</div>
 
       <NavSectionVertical
         data={navData}

@@ -11,7 +11,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import PhoneIcon from '@mui/icons-material/Phone';
-import { decryptToken, states } from 'src/utils/common';
+import { color, decryptToken, states } from 'src/utils/common';
 import axios, { endpoints } from 'src/utils/axios';
 import { constants } from 'src/utils/constant';
 import { useSnackbar } from 'src/components/snackbar';
@@ -27,7 +27,7 @@ const style = {
     borderRadius: '10px',
     boxShadow: 24,
     p: 2,
-    backgroundColor: 'lightblue',
+    backgroundColor: color.modalbackground,
     height: '90%',
     overflow: 'auto',
 };
@@ -73,13 +73,6 @@ const initialVendorErr = {
             state: false,
             pincode: false,
         },
-        // shippingAddress: {
-        //     line1: false,
-        //     line2: false,
-        //     city: false,
-        //     state: false,
-        //     pincode: false,
-        // },
     },
 };
 
@@ -465,7 +458,7 @@ export default function VendorView() {
                     <Button onClick={(event) => {
                         setAnchorEl(event.currentTarget);
                         setTempData(row);
-                    }} color='info' variant='outlined' endIcon={<ArrowDropDownIcon />}>Action</Button>
+                    }} style={{ color: color.actionButton }} variant='outlined' endIcon={<ArrowDropDownIcon />}>Action</Button>
                     <Menu
                         id="basic-menu"
                         anchorEl={anchorEl}
@@ -510,7 +503,7 @@ export default function VendorView() {
                         ),
                     }}
                 />
-                <Button startIcon={<AddIcon />} variant='outlined' color='primary' onClick={handleOpen}>
+                <Button startIcon={<AddIcon />} variant='contained' color='primary' onClick={handleOpen}>
                     ADD VENDOR
                 </Button>
             </div>
@@ -921,10 +914,11 @@ export default function VendorView() {
 
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', justifyContent: 'flex-end', padding: "10px" }}>
-                        <Button variant='contained' onClick={editUser ? handleUpdateCustomer : handleSaveUser}>
+                        <Button variant='contained' color='primary' onClick={editUser ? handleUpdateCustomer : handleSaveUser}>
                             {editUser ? 'Update' : 'Save'}
                         </Button>
                         <Button variant='outlined' onClick={() => {
+                            setVendorErr(initialVendorErr)
                             if (editUser) {
                                 setVendor(initialVendorData);
                                 setEditUser(false);

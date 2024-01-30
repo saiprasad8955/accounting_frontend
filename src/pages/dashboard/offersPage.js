@@ -8,12 +8,12 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 // components
 import { useSettingsContext } from 'src/components/settings';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormHelperText, Grid, InputAdornment, InputLabel, Menu, MenuItem, Modal, Select, TextField } from '@mui/material';
+import { Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormHelperText, Grid, InputAdornment, InputLabel, Menu, MenuItem, Modal, Select, TextField } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import PhoneIcon from '@mui/icons-material/Phone';
-import { decryptToken, formatDate, generateOfferCode, states } from 'src/utils/common';
+import { color, decryptToken, formatDate, generateOfferCode } from 'src/utils/common';
 import axios, { endpoints } from 'src/utils/axios';
 import { constants } from 'src/utils/constant';
 import { useSnackbar } from 'src/components/snackbar';
@@ -36,8 +36,10 @@ const style = {
     bgcolor: 'background.paper',
     borderRadius: '10px',
     boxShadow: 24,
-    p: 2,
-    backgroundColor: 'lightblue',
+    pl: 2,
+    pr: 2,
+    pt: 2,
+    backgroundColor: color.modalbackground,
     height: 'auto',
     overflow: 'auto',
 };
@@ -48,13 +50,15 @@ const style = {
 const initialOfferData = {
     code: '',
     description: '',
-    type: '',
+    type: 'PERCENTAGE',
+    typeValue: '',
     status: ''
 };
 
 
 const initialOfferErr = {
     type: false,
+    typeValue: false,
     status: false
 };
 
@@ -62,11 +66,10 @@ const initialOfferErr = {
 export default function OffersView() {
 
 
-    const [dateValue, setDateValue] = useState(dayjs('2022-04-17'));
-    const utcDateFromBackend = '2024-01-14T18:30:00.000+00:00';  // Replace this with the UTC date from your backend
-    const utcDateObject = dayjs.utc(utcDateFromBackend);
-    const localDateObject = utcDateObject.local();
-    console.log("🚀 ~ OffersView ~ localDateObject:", localDateObject)
+    // const [dateValue, setDateValue] = useState(dayjs('2022-04-17'));
+    // const utcDateFromBackend = '2024-01-14T18:30:00.000+00:00';  // Replace this with the UTC date from your backend
+    // const utcDateObject = dayjs.utc(utcDateFromBackend);
+    // const localDateObject = utcDateObject.local();
 
     const settings = useSettingsContext();
     const { enqueueSnackbar } = useSnackbar();
@@ -139,7 +142,7 @@ export default function OffersView() {
             [name]: value,
         }));
 
-        if (name === 'type' || name === 'status') {
+        if (name === 'type' || name === 'status' || name === 'typeValue') {
             // Clear the error for the field when the user starts typing again
             setOfferErr((prevErrors) => ({
                 ...prevErrors,
@@ -157,11 +160,11 @@ export default function OffersView() {
         }
         setOfferErr((prevErrs) => ({ ...prevErrs, type: false }))
 
-        if (!offer.status) {
-            setOfferErr((prevErrs) => ({ ...prevErrs, status: true }))
+        if (!offer.typeValue) {
+            setOfferErr((prevErrs) => ({ ...prevErrs, typeValue: true }))
             return;
         }
-        setOfferErr((prevErrs) => ({ ...prevErrs, status: false }))
+        setOfferErr((prevErrs) => ({ ...prevErrs, typeValue: false }))
 
         // If no errors, proceed with saving
         const decryptedToken = localStorage.getItem(constants.keyUserToken);
@@ -195,6 +198,7 @@ export default function OffersView() {
             id: tempData._id,
             code: tempData.code,
             status: tempData.status,
+            typeValue: tempData.typeValue,
             type: tempData.type,
             description: tempData.description
         };
@@ -304,7 +308,7 @@ export default function OffersView() {
                     <Button onClick={(event) => {
                         setAnchorEl(event.currentTarget);
                         setTempData(row)
-                    }} color='info' variant='outlined' endIcon={<ArrowDropDownIcon />}>Action</Button>
+                    }} style={{ color: color.actionButton }} variant='outlined' endIcon={<ArrowDropDownIcon />}>Action</Button>
                     <Menu
                         id="basic-menu"
                         anchorEl={anchorEl}
@@ -338,10 +342,48 @@ export default function OffersView() {
 
             <Typography variant="h4"> Offer Management </Typography>
 
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button startIcon={<AddIcon />} variant='contained' color='primary' onClick={handleOpen}>
+                    ADD OFFER
+                </Button>
+            </div>
+
+            {/* CARDS */}
+            <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginTop: '10px', gap: "10px", padding: '10px', backgroundColor: '#E6F2FF', borderRadius: '10px' }}>
+                <Card>
+                    <CardContent>
+                        <Typography variant="h6">Total number of offers</Typography>
+                        <Typography variant="h5">{offers.length ?? '0'}</Typography>
+                        {/* Additional content for each card */}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent>
+                        <Typography variant="h6">Number of Live offers</Typography>
+                        <Typography variant="h5">  {offers.filter((off) => off.status === 'LIVE').length ?? '0'}</Typography>
+                        {/* Additional content for each card */}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent>
+                        <Typography variant="h6">Number of Draft offers</Typography>
+                        <Typography variant="h5"> {offers.filter((off) => off.status === 'DRAFT').length ?? '0'}</Typography>
+                        {/* Additional content for each card */}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent>
+                        <Typography variant="h6">Number of Past offers</Typography>
+                        <Typography variant="h5"> {offers.filter((off) => off.status === 'PAST').length ?? '0'}</Typography>
+                        {/* Additional content for each card */}
+                    </CardContent>
+                </Card>
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
                 <div style={{ display: "flex", flexDirection: 'row', alignItems: "center", gap: "10px" }}>
                     <TextField
-                        placeholder='Search'
+                        placeholder='Search by offer code'
                         size='small'
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -362,9 +404,7 @@ export default function OffersView() {
                         />
                     </LocalizationProvider>
                 </div>
-                <Button startIcon={<AddIcon />} variant='outlined' color='primary' onClick={handleOpen}>
-                    ADD OFFER
-                </Button>
+
             </div>
 
             <Modal
@@ -380,7 +420,7 @@ export default function OffersView() {
                         </Typography>
                         <div style={{ padding: "10px", backgroundColor: 'white', borderRadius: '10px' }}>
                             <Grid container spacing={2} >
-                                <Grid item xs={4}>
+                                <Grid item xs={editUser ? 6 : 6}>
                                     <TextField
                                         label='Offer Code'
                                         name='offercode'
@@ -389,20 +429,7 @@ export default function OffersView() {
                                         fullWidth
                                         required />
                                 </Grid>
-                                {/* <Grid item xs={4}>
-                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                        <DatePicker
-                                            label="Controlled picker"
-                                            value={dateValue}
-                                            onChange={(newValue) => {
-                                                const utcValue = newValue.utc().startOf('day').format();;
-                                                console.log("🚀 ~ OffersView ~ utcValue:", utcValue)
-                                            }}
-                                        />
-                                    </LocalizationProvider>
-                                </Grid> */}
-
-                                <Grid item xs={4}>
+                                <Grid item xs={editUser ? 6 : 6}>
                                     <FormControl fullWidth>
                                         <InputLabel id="demo-simple-select-label">Offer Percentage Type</InputLabel>
                                         <Select
@@ -425,30 +452,49 @@ export default function OffersView() {
                                         }
                                     </FormControl>
                                 </Grid>
-                                <Grid item xs={4}>
-                                    <FormControl fullWidth>
-                                        <InputLabel id="demo-simple-select-label">Offer Status</InputLabel>
-                                        <Select
-                                            labelId="demo-simple-select-label"
-                                            id="demo-simple-select"
-                                            value={offer.status}
-                                            label="Offer Status"
-                                            name='status'
-                                            onChange={handleChange}
-                                            error={offerErr.status}
-                                            required
-                                        >
-                                            <MenuItem value='DRAFT'>Draft</MenuItem>
-                                            <MenuItem value='LIVE'>Live</MenuItem>
-                                            <MenuItem value='PAST'>Past</MenuItem>
-                                        </Select>
-                                        {
-                                            offerErr.status &&
 
-                                            <FormHelperText sx={{ color: 'red' }}>Please Select Offer Status</FormHelperText>
-                                        }
-                                    </FormControl>
+                                <Grid item xs={editUser ? 6 : 12}>
+                                    <TextField
+                                        label={offer.type === 'PERCENTAGE' ? 'Percentage' : 'Value'}
+                                        placeholder={offer.type === 'PERCENTAGE' ? 'ENTER PERCENTAGE' : 'ENTER VALUE'}
+                                        name='typeValue'
+                                        type='number'
+                                        onChange={handleChange}
+                                        value={offer.typeValue}
+                                        fullWidth
+                                        error={offerErr.typeValue}
+                                        helperText={
+                                            offerErr.typeValue ?
+                                                `Enter ${offer.type === 'PERCENTAGE' ? 'percentage' : 'value'}` : null}
+                                        required />
                                 </Grid>
+                                {
+                                    editUser && <Grid item xs={editUser ? 6 : 4}>
+                                        <FormControl fullWidth>
+                                            <InputLabel id="demo-simple-select-label">Offer Status</InputLabel>
+                                            <Select
+                                                labelId="demo-simple-select-label"
+                                                id="demo-simple-select"
+                                                value={offer.status}
+                                                label="Offer Status"
+                                                name='status'
+                                                onChange={handleChange}
+                                                error={offerErr.status}
+                                                required
+                                            >
+                                                <MenuItem value='DRAFT'>Draft</MenuItem>
+                                                <MenuItem value='LIVE'>Live</MenuItem>
+                                                <MenuItem value='PAST'>Past</MenuItem>
+                                            </Select>
+                                            {
+                                                offerErr.status &&
+
+                                                <FormHelperText sx={{ color: 'red' }}>Please Select Offer Status</FormHelperText>
+                                            }
+                                        </FormControl>
+                                    </Grid>
+                                }
+
                                 <Grid item xs={12}>
                                     <TextField
                                         label='Description'
@@ -466,7 +512,7 @@ export default function OffersView() {
                         </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', justifyContent: 'flex-end', padding: "10px" }}>
-                        <Button variant='contained' onClick={editUser ? handleUpdate : handleSave}>
+                        <Button variant='contained' onClick={editUser ? handleUpdate : handleSave} color='primary'>
                             {editUser ? 'Update' : 'Save'}
                         </Button>
                         <Button variant='outlined' onClick={() => {

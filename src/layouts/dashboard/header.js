@@ -53,6 +53,10 @@ export default function Header({ onOpenNav }) {
       )}
 
       {/* <Searchbar /> */}
+      
+      <div style={{ display: 'flex', justifyContent: 'center', width: '70%' }}>
+        <Logo sx={{ ml: 5 }} />
+      </div>
 
       <Stack
         flexGrow={1}

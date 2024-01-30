@@ -28,10 +28,10 @@ export default function NavItem({ item, open, depth, active, config, externalLin
       {...other}
     >
       <>
-        {icon && <StyledIcon size={config.iconSize}>{icon}</StyledIcon>}
+        {icon && <StyledIcon size={config.iconSize} sx={{ color: 'black' }}>{icon}</StyledIcon>}
 
         {subItem && (
-          <StyledIcon size={config.iconSize}>
+          <StyledIcon size={config.iconSize} sx={{ color: '#1E1E1E' }}>
             <StyledDotIcon active={active} />
           </StyledIcon>
         )}
@@ -40,6 +40,7 @@ export default function NavItem({ item, open, depth, active, config, externalLin
       {!(config.hiddenLabel && !subItem) && (
         <ListItemText
           primary={title}
+          sx={{ color: '#1E1E1E' }}
           secondary={
             caption ? (
               <Tooltip title={caption} placement="top-start">

@@ -120,3 +120,9 @@ export function generateOfferCode() {
 
     return offerCode;
 }
+
+
+export const color = {
+    actionButton: '#5850EC',
+    modalbackground:'#E6F2FF'
+};

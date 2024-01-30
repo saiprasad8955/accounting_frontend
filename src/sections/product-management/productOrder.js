@@ -12,7 +12,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import PhoneIcon from '@mui/icons-material/Phone';
-import { decryptToken, formatDate, generateOfferCode, states } from 'src/utils/common';
+import { color, decryptToken, formatDate, generateOfferCode, states } from 'src/utils/common';
 import axios, { endpoints } from 'src/utils/axios';
 import { constants } from 'src/utils/constant';
 import { useSnackbar } from 'src/components/snackbar';
@@ -53,7 +53,7 @@ const style = {
   borderRadius: '10px',
   boxShadow: 24,
   p: 2,
-  backgroundColor: 'lightblue',
+  backgroundColor: color.modalbackground,
   height: 'auto',
   overflow: 'auto',
 };
@@ -311,7 +311,7 @@ export default function ProductPage() {
           <Button onClick={(event) => {
             setAnchorEl(event.currentTarget);
             setTempData(row)
-          }} color='info' variant='outlined' endIcon={<ArrowDropDownIcon />}>Action</Button>
+          }} style={{ color: color.actionButton }} c variant='outlined' endIcon={<ArrowDropDownIcon />}>Action</Button>
           <Menu
             id="basic-menu"
             anchorEl={anchorEl}
@@ -378,7 +378,7 @@ export default function ProductPage() {
           <Button onClick={(event) => {
             setAnchorElForCat(event.currentTarget);
             setTempCatergoryData(row)
-          }} color='info' variant='outlined' endIcon={<ArrowDropDownIcon />}>Action</Button>
+          }} style={{ color: color.actionButton }} variant='outlined' endIcon={<ArrowDropDownIcon />}>Action</Button>
           <Menu
             id="basic-menu"
             anchorEl={anchorElForCat}
@@ -578,16 +578,16 @@ export default function ProductPage() {
                   ),
                 }}
               />
-              <LocalizationProvider dateAdapter={AdapterDayjs} >
+              {/* <LocalizationProvider dateAdapter={AdapterDayjs} >
                 <SingleInputDateRangeField
                   size='small'
                   label="Date Range"
                 // value={value}
                 // onChange={(newValue) => setValue(newValue)}
                 />
-              </LocalizationProvider>
+              </LocalizationProvider> */}
             </div>
-            <Button startIcon={<AddIcon />} variant='outlined' color='primary' onClick={handleOpen}>
+            <Button startIcon={<AddIcon />} variant='contained' color='primary' onClick={handleOpen}>
               ADD PRODUCT
             </Button>
           </div>
@@ -772,7 +772,7 @@ export default function ProductPage() {
               />
 
             </div>
-            <Button startIcon={<AddIcon />} variant='outlined' color='primary' onClick={() => {
+            <Button startIcon={<AddIcon />} variant='contained' color='primary' onClick={() => {
               setEditCategoryState(false);
               setIsCategoryModalOpen(true);
             }}>

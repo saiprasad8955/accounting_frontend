@@ -11,7 +11,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import PhoneIcon from '@mui/icons-material/Phone';
-import { decryptToken, states } from 'src/utils/common';
+import { color, decryptToken, states } from 'src/utils/common';
 import axios, { endpoints } from 'src/utils/axios';
 import { constants } from 'src/utils/constant';
 import { useSnackbar } from 'src/components/snackbar';
@@ -27,7 +27,7 @@ const style = {
     borderRadius: '10px',
     boxShadow: 24,
     p: 2,
-    backgroundColor: 'lightblue',
+    backgroundColor: '#E6F2FF',
     height: '90%',
     overflow: 'auto',
 };
@@ -219,7 +219,7 @@ export default function CustomerView() {
                 state: !billingAddress.state,
                 pincode: !billingAddress.pincode,
             };
-        } else if (!/^[0-9]*$/.test(billingAddress.pincode)  || billingAddress.pincode.length !== 6) {
+        } else if (!/^[0-9]*$/.test(billingAddress.pincode) || billingAddress.pincode.length !== 6) {
             // If pincode is not numeric, set error
             newErrors.company.billingAddress.pincode = true;
         } else {
@@ -245,7 +245,7 @@ export default function CustomerView() {
                 state: !shippingAddress.state,
                 pincode: !shippingAddress.pincode,
             };
-        } else if (!/^[0-9]*$/.test(shippingAddress.pincode)  || shippingAddress.pincode.length !== 6) {
+        } else if (!/^[0-9]*$/.test(shippingAddress.pincode) || shippingAddress.pincode.length !== 6) {
             // If pincode is not numeric, set error
             newErrors.company.shippingAddress.pincode = true;
         } else {
@@ -496,7 +496,7 @@ export default function CustomerView() {
                     <Button onClick={(event) => {
                         setAnchorEl(event.currentTarget);
                         setTempData(row)
-                    }} color='info' variant='outlined' endIcon={<ArrowDropDownIcon />}>Action</Button>
+                    }} style={{ color: color.actionButton }} variant='outlined' endIcon={<ArrowDropDownIcon />}>Action</Button>
                     <Menu
                         id="basic-menu"
                         anchorEl={anchorEl}
@@ -539,7 +539,7 @@ export default function CustomerView() {
                         ),
                     }}
                 />
-                <Button startIcon={<AddIcon />} variant='outlined' color='primary' onClick={handleOpen}>
+                <Button startIcon={<AddIcon />} color='primary' variant='contained' onClick={handleOpen}>
                     ADD CUSTOMER
                 </Button>
             </div>
@@ -950,10 +950,11 @@ export default function CustomerView() {
 
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', justifyContent: 'flex-end', padding: "10px" }}>
-                        <Button variant='contained' onClick={editUser ? handleUpdateCustomer : handleSaveCustomer}>
+                        <Button variant='contained' color='primary' onClick={editUser ? handleUpdateCustomer : handleSaveCustomer}>
                             {editUser ? 'Update' : 'Save'}
                         </Button>
                         <Button variant='outlined' onClick={() => {
+                            setCustomerErr(initialCustomerErr);
                             if (editUser) {
                                 setCustomer(initialCustomerData);
                                 setEditUser(false);

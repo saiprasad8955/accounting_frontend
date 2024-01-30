@@ -11,7 +11,7 @@ import { Grid, Tab, Tabs, TextField, Button, InputAdornment, Modal, MenuItem, Me
 import SearchIcon from '@mui/icons-material/Search';
 import DataTable from 'react-data-table-component';
 import { constants } from 'src/utils/constant';
-import { decryptToken, formatDate } from 'src/utils/common';
+import { color, decryptToken, formatDate } from 'src/utils/common';
 import axios, { endpoints } from 'src/utils/axios';
 import PrintIcon from '@mui/icons-material/Print';
 import { useSnackbar } from 'src/components/snackbar';
@@ -201,7 +201,7 @@ export default function ProductBarcode() {
             width: 'auto',
             center: 'true',
             cell: (row) => (
-                <Button onClick={() => { }} color='info' variant='outlined' endIcon={<PrintIcon />}>Print</Button>
+                <Button onClick={() => { }} style={{ color: color.actionButton }} variant='outlined' endIcon={<PrintIcon />}>Print</Button>
             ),
         },
     ];

@@ -13,7 +13,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import PhoneIcon from '@mui/icons-material/Phone';
-import { decryptToken, formatDate, generateOfferCode, states } from 'src/utils/common';
+import { color, decryptToken, formatDate, generateOfferCode, states } from 'src/utils/common';
 import axios, { endpoints } from 'src/utils/axios';
 import { constants } from 'src/utils/constant';
 import { useSnackbar } from 'src/components/snackbar';
@@ -37,7 +37,7 @@ const style = {
   borderRadius: '10px',
   boxShadow: 24,
   p: 2,
-  backgroundColor: 'lightblue',
+  backgroundColor: color.modalbackground,
   height: 'auto',
   overflow: 'auto',
 };
@@ -386,7 +386,7 @@ export default function ExpenditureView() {
 
       <Typography variant="h4"> Expenditure </Typography>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
+      {/* <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
         <div style={{ display: "flex", flexDirection: 'row', alignItems: "center", gap: "10px" }}>
           <TextField
             placeholder='Search'
@@ -405,15 +405,14 @@ export default function ExpenditureView() {
             <SingleInputDateRangeField
               size='small'
               label="Date Range"
-            // value={value}
-            // onChange={(newValue) => setValue(newValue)}
+           
             />
           </LocalizationProvider>
         </div>
-        <Button startIcon={<AddIcon />} variant='outlined' color='primary' onClick={handleOpen}>
+        <Button startIcon={<AddIcon />} variant='contained' color='primary' onClick={handleOpen}>
           ADD EXPENSE
-        </Button>
-      </div>
+        </Button> 
+      </div> */}
 
       <Modal
         open={open}
@@ -545,7 +544,7 @@ export default function ExpenditureView() {
 
           </div>
           <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', justifyContent: 'flex-end', padding: "10px" }}>
-            <Button variant='contained' onClick={editUser ? handleUpdate : handleSave}>
+            <Button variant='contained' color='primary' onClick={editUser ? handleUpdate : handleSave}>
               {editUser ? 'Update' : 'Save'}
             </Button>
             <Button variant='outlined' onClick={() => {
@@ -565,14 +564,14 @@ export default function ExpenditureView() {
 
       </Modal>
 
-      <div style={{ marginTop: "20px" }}>
+      {/* <div style={{ marginTop: "20px" }}>
         <DataTable
           columns={offerCoumns}
           data={filteredCustomers}
           pagination
           progressPending={isLoading}
         />
-      </div>
+      </div> */}
 
 
       {/* Dialog For Delete */}
